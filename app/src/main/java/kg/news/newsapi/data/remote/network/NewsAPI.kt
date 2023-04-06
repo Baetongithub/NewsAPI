@@ -1,5 +1,6 @@
 package kg.news.newsapi.data.remote.network
 
+import kg.news.newsapi.BuildConfig
 import kg.news.newsapi.data.model.NewsModel
 import retrofit2.Response
 import retrofit2.http.GET
@@ -12,7 +13,7 @@ interface NewsAPI {
         @Query("q")
         q: String?,
         @Query("apiKey")
-        apiKey: String,
+        apiKey: String = BuildConfig.API_KEY,
     ): Response<NewsModel>
 
     @GET("top-headlines")
@@ -22,7 +23,7 @@ interface NewsAPI {
         @Query("category")
         category: String?,
         @Query("apiKey")
-        apiKey: String,
+        apiKey: String = BuildConfig.API_KEY,
     ): Response<NewsModel>
 
 //    @GET("top-headlines/sources")
@@ -30,6 +31,6 @@ interface NewsAPI {
 //        @Query("category")
 //        category: String?,
 //        @Query("apiKey")
-//        apiKey: String,
+//        apiKey: String = BuildConfig.API_KEY,
 //    ): Response<TopRatedCategoriesModel>
 }

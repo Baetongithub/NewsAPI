@@ -10,38 +10,36 @@ import androidx.fragment.app.Fragment
 import androidx.viewbinding.ViewBinding
 import kg.news.newsapi.extensions.toast
 
-abstract class BaseFragment<VB : ViewBinding>(private val viewBinding: (LayoutInflater, ViewGroup?, Boolean) -> VB) :
-    Fragment() {
+abstract class BaseFragment<VB : ViewBinding>(
+    private val viewBinding: (LayoutInflater, ViewGroup?, Boolean) -> VB
+) : Fragment() {
 
-    private var binding: VB? = null
-    val vb get() = binding!!
+    private var _vb: VB? = null
+    val vb get() = _vb!!
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         super.onCreateView(inflater, container, savedInstanceState)
-        binding = viewBinding.invoke(inflater, container, false)
+        _vb = viewBinding.invoke(inflater, container, false)
         setupUI()
         livedata()
         checkNetworkConnection()
 
-        return binding!!.root
+        return _vb!!.root
     }
 
-    abstract fun setupUI()
+    protected open fun setupUI(){}
 
-    abstract fun checkNetworkConnection()
+    protected open fun checkNetworkConnection(){}
 
-    abstract fun livedata()
-
-    fun hideKeyBoard() {
-        val imm = activity?.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        var view = activity?.currentFocus
-        if (view == null) view = View(activity)
-        imm.hideSoftInputFromWindow(view.windowToken, 0)
-    }
+    protected open fun livedata(){}
 
     override fun onDestroyView() {
         super.onDestroyView()
-        binding = null
+        _vb = null
         toast("onDestroyView")
     }
 }

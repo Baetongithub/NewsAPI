@@ -1,6 +1,10 @@
 package kg.news.newsapi.ui.home
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.View.GONE
+import android.view.View.VISIBLE
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -13,6 +17,7 @@ import kg.news.newsapi.data.remote.network.Status
 import kg.news.newsapi.databinding.FragmentHomeBinding
 import kg.news.newsapi.extensions.toast
 import kg.news.newsapi.utils.Constants
+import kg.news.newsapi.utils.KeyboardHelper
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class HomeFragment : BaseFragment<FragmentHomeBinding>(FragmentHomeBinding::inflate) {
@@ -20,42 +25,26 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(FragmentHomeBinding::infl
     /**Categories*/
     private val listCategories = arrayListOf<CategoriesModel>()
     private val adapterCategories: HomeCategoriesAdapter by lazy {
-        HomeCategoriesAdapter(listCategories,
-            this::onCLickCategories)
+        HomeCategoriesAdapter(
+            listCategories,
+            this::onCLickCategories
+        )
     }
 
     /**Main News*/
     private val listMainNews = arrayListOf<Article>()
-    private val adapterMainNews: MainNewsAdapter by lazy { MainNewsAdapter(listMainNews, this::onClickNews) }
+    private val adapterMainNews: MainNewsAdapter by lazy {
+        MainNewsAdapter(
+            listMainNews,
+            this::onClickNews
+        )
+    }
 
     private val viewModel: MainViewModel by viewModel()
 
-    override fun checkNetworkConnection() {
-
-    }
-
     override fun setupUI() {
-        vb.recyclerViewCategories.apply {
-            layoutManager = LinearLayoutManager(context, HORIZONTAL, false)
-            adapter = adapterCategories
-        }
-
-        vb.fabSearch.setOnClickListener {
-            if (vb.etSearch.text.isNotEmpty()) {
-                loadNewsOnRequest(vb.etSearch.text.toString().trim())
-                vb.tvToolbar.text = vb.etSearch.text.toString()
-            } else toast("Empty request")
-        }
-
-        vb.recyclerViewMainNews.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                super.onScrolled(recyclerView, dx, dy)
-
-                if (dy > 0) {
-                    hideKeyBoard()
-                }
-            }
-        })
+        setupCategoriesRecyclerView()
+        initSearchNews()
     }
 
     override fun livedata() {
@@ -78,20 +67,17 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(FragmentHomeBinding::infl
         viewModel.loadTopRatedNews(country, category).observe(this) { resource ->
             when (resource.status) {
                 Status.SUCCESS -> {
-
+                    vb.cardProgressBar.visibility = GONE
                     listMainNews.clear()
                     if (resource.data != null)
                         listMainNews.addAll(resource.data.articles)
-
-                    setUpRecyclerView()
-
-                    toast(resource.data?.articles?.get(0)!!.title)
+                    setUpNewsRecyclerView()
                 }
-                Status.ERROR -> toast("Error " + resource.message)
-
-                Status.LOADING -> {
-                    toast("Loading")
+                Status.ERROR -> {
+                    vb.cardProgressBar.visibility = GONE
+                    toast("Error " + resource.message)
                 }
+                Status.LOADING -> vb.cardProgressBar.visibility = VISIBLE
             }
         }
     }
@@ -102,24 +88,68 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(FragmentHomeBinding::infl
                 Status.SUCCESS -> {
                     listMainNews.clear()
                     resource.data?.articles?.let { listMainNews.addAll(it) }
-
-                    setUpRecyclerView()
-
-                    toast(resource.data?.articles?.get(0)!!.title)
+                    setUpNewsRecyclerView()
+                    vb.cardProgressBar.visibility = GONE
                 }
-                Status.ERROR -> toast("Error " + resource.message)
-                Status.LOADING -> {
-                    toast("Loading")
+                Status.ERROR -> {
+                    vb.cardProgressBar.visibility = GONE
+                    toast("Error " + resource.message)
                 }
+                Status.LOADING -> vb.cardProgressBar.visibility = VISIBLE
             }
         }
     }
 
-    private fun setUpRecyclerView() {
-        vb.recyclerViewMainNews.apply {
+    private fun setUpNewsRecyclerView() = with(vb) {
+        recyclerViewMainNews.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = adapterMainNews
+            addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                    super.onScrolled(recyclerView, dx, dy)
+                    if (dy > 0) {
+                        KeyboardHelper.hideKeyboard(activity)
+                    }
+                }
+            })
         }
+    }
+
+    private fun setupCategoriesRecyclerView() = with(vb) {
+        recyclerViewCategories.apply {
+            layoutManager = LinearLayoutManager(context, HORIZONTAL, false)
+            adapter = adapterCategories
+        }
+    }
+
+    private fun initSearchNews() = with(vb) {
+        imageSearch.setOnClickListener {
+            customSearchView.visibility = VISIBLE
+            toolbar.visibility = GONE
+            KeyboardHelper.showKeyboard(context, focusOn = vb.etSearch)
+        }
+        imageBackSearch.setOnClickListener {
+            KeyboardHelper.hideKeyboard(activity)
+            customSearchView.visibility = GONE
+            toolbar.visibility = VISIBLE
+        }
+
+        etSearch.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+
+            }
+
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+
+            }
+
+            override fun afterTextChanged(p0: Editable?) {
+                if (p0 != null) {
+                    loadNewsOnRequest(p0.toString())
+                    vb.tvToolbar.text = p0
+                }
+            }
+        })
     }
 
     private fun onClickNews(items: Article) {
@@ -134,5 +164,8 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(FragmentHomeBinding::infl
         } else {
             loadTopRatedNews("ru", e.name.replaceFirstChar { it.lowercase() })
         }
+        vb.tvToolbar.text = String.format("${context?.getString(R.string.news)} • ${e.name}")
+        vb.customSearchView.visibility = GONE
+        vb.toolbar.visibility = VISIBLE
     }
 }

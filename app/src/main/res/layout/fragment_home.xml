@@ -4,13 +4,42 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:animateLayoutChanges="true"
     android:orientation="vertical"
     tools:context=".ui.home.HomeFragment">
+
+    <RelativeLayout
+        android:id="@+id/custom_search_view"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <EditText
+            android:id="@+id/et_search"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toEndOf="@id/image_back_search"
+            android:backgroundTint="@color/white"
+            android:hint="@string/search" />
+
+        <ImageView
+            android:id="@+id/image_back_search"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="5dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/image_back_search"
+            android:src="@drawable/ic_back" />
+
+    </RelativeLayout>
 
     <Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="?attr/actionBarSize"
         android:elevation="10dp">
 
         <TextView
@@ -22,32 +51,26 @@
             android:textColor="@color/black"
             android:textSize="25sp"
             android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/image_search"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="end|center_vertical"
+            android:layout_marginEnd="10dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/search_news"
+            android:src="@drawable/ic_search" />
     </Toolbar>
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <EditText
-            android:id="@+id/et_search"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_toStartOf="@id/fab_search"
-            android:hint="Search"
-            android:inputType="textCapSentences" />
-
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fab_search"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            app:backgroundTint="#FF8F00" />
-
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_view_categories"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/fab_search"
             tools:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             tools:listitem="@layout/item_categories"
             tools:orientation="horizontal" />
@@ -68,5 +91,20 @@
             android:visibility="visible"
             tools:listitem="@layout/item_main_news" />
 
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:backgroundTint="@color/white"
+            android:elevation="10dp"
+            app:cardCornerRadius="15dp">
+
+            <ProgressBar
+                android:id="@+id/progress_bar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="15dp" />
+        </androidx.cardview.widget.CardView>
     </RelativeLayout>
 </LinearLayout>
